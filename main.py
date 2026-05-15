@@ -640,6 +640,10 @@ class MyPlugin(Star):
             message = formatters.format_webhook_create_message(
                 repo_full_name, payload, sender
             )
+        elif event_type == "push":
+            message = formatters.format_webhook_push_message(
+                repo_full_name, payload, sender
+            )
         else:
             logger.debug(f"暂不处理的 GitHub Webhook 事件类型: {event_type}")
             return

@@ -398,6 +398,41 @@ def format_webhook_star_message(
     return "\n".join(message_lines)
 
 
+def format_webhook_push_message(
+    repo: str,
+    payload: dict[str, Any],
+    sender: dict[str, Any] | None,
+) -> str | None:
+    ref: str = payload.get("ref", "")
+    branch = ref.replace("refs/heads/", "") if ref.startswith("refs/heads/") else ref
+    commits = payload.get("commits", [])
+    head_commit = payload.get("head_commit")
+    compare_url = payload.get("compare", "")
+    pusher = payload.get("pusher", {})
+    actor = (sender or {}).get("login") or pusher.get("name") or "未知"
+
+    commit_count = len(commits) if isinstance(commits, list) else 0
+    if commit_count == 0 and isinstance(head_commit, dict):
+        commit_count = 1
+
+    message_lines = [
+        f"[GitHub Webhook] 仓库 {repo} 有新的 Push",
+        f"分支: {branch}",
+        f"提交数: {commit_count}",
+        f"推送者: {actor}",
+    ]
+
+    if isinstance(head_commit, dict):
+        short_sha = head_commit.get("id", "")[:7]
+        commit_msg = head_commit.get("message", "")
+        message_lines.append(f"最新提交: {short_sha} {commit_msg}")
+
+    if compare_url:
+        message_lines.append(f"链接: {compare_url}")
+
+    return "\n".join(message_lines)
+
+
 def format_webhook_create_message(
     repo: str,
     payload: dict[str, Any],
